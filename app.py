@@ -3,18 +3,18 @@ from PIL import Image
 import numpy as np
 import matplotlib.pyplot as plt
 import torch
-from torchvision.models import resnet50, ResNet50_Weights
+from torchvision.models import resnet18, ResNet18_Weights
 
 from captum.attr import IntegratedGradients
 from captum.attr import visualization as viz
 
-preprocess_func = ResNet50_Weights.IMAGENET1K_V2.transforms()
-categories = np.array(ResNet50_Weights.IMAGENET1K_V2.meta["categories"])
+preprocess_func = ResNet18_Weights.IMAGENET1K_V1.transforms()
+categories = np.array(ResNet18_Weights.IMAGENET1K_V1.meta["categories"])
 
 @st.cache_resource
 def load_model():
     local_weights_path = "weights.pth"
-    model = resnet50(weights=None)
+    model = resnet18(weights=None)
     model.load_state_dict(torch.load(local_weights_path))
     model.eval()
     return model
@@ -41,7 +41,7 @@ upload = st.file_uploader(label="Upload Image:", type=["png", "jpg", "jpeg"])
 
 if upload:
     img = Image.open(upload)
-
+    img = img.resize((224, 224))
     model = load_model()
     preprocessed_img = preprocess_func(img)
     probs, idxs = make_prediction(model, preprocessed_img)
