@@ -2,7 +2,7 @@ import streamlit as st
 from PIL import Image
 import numpy as np
 import matplotlib.pyplot as plt
-
+import torch
 from torchvision.models import resnet50, ResNet50_Weights
 
 from captum.attr import IntegratedGradients
@@ -13,8 +13,10 @@ categories = np.array(ResNet50_Weights.IMAGENET1K_V2.meta["categories"])
 
 @st.cache_resource
 def load_model():
-    model = resnet50(weights=ResNet50_Weights.IMAGENET1K_V2)
-    model.eval();
+    local_weights_path = "weights.pth"
+    model = resnet50(weights=None)
+    model.load_state_dict(torch.load(local_weights_path))
+    model.eval()
     return model
 
 def make_prediction(model, processed_img):
@@ -51,7 +53,7 @@ if upload:
     plt.title("Top 5 Probabilities", loc="center", fontsize=15)
     st.pyplot(main_fig, use_container_width=True)
 
-    interp_fig, ax = viz.visualize_image_attr(feature_imp, show_colorbar=True, fig_size=(6,6))
+    interp_fig, ax = viz.visualize_image_attr(feature_imp, show_colorbar=True, fig_size=(6,6), use_pyplot=False)
 
     col1, col2 = st.columns(2, gap="medium")
 
@@ -59,8 +61,8 @@ if upload:
         main_fig = plt.figure(figsize=(6,6))
         ax = main_fig.add_subplot(111)
         plt.imshow(img)
-        plt.xticks([],[]);
-        plt.yticks([],[]);
+        plt.xticks([],[])
+        plt.yticks([],[])
         st.pyplot(main_fig, use_container_width=True)
 
     with col2:
